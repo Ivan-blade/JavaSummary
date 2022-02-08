@@ -65,8 +65,9 @@
 #### kafka架构（缺图）
 
 + Kafka Cluster：
-  + 由多个服务器组成。每个服务器单独的名字broker（掮客）。
-
+  
++ 由多个服务器组成。每个服务器单独的名字broker（掮客）。
+  
 + kafka broker：
   + kafka集群中单个服务称为broker，broker接收来自生产者的消息，为消息设置偏移量，并提交消息到磁盘保 存。broker为消费者提供服务，对读取分区的请求做出响应，返回已经提交到磁盘上的消息。单个**broker**可以轻松处理数千个分区以及每秒百万级的消息量。
 
@@ -895,4 +896,130 @@
 
 ### 进阶
 
-#### 
+#### 常用配置参数(server.properties中)
+
++  **zookeeper.connect**
+
+  + 该参数用于配置Kafka要连接的Zookeeper/集群的地址。
+
+  + 它的值是一个字符串，使用逗号分隔Zookeeper的多个地址。Zookeeper的单个地址是 host:port 形式的，可以在最后添加Kafka在Zookeeper中的根节点路径
+
+    ```shell
+    zookeeper.connect=node2:2181,node3:2181,node4:2181/myKafka
+    ```
+
++  **listeners**
+
+  + 用于指定当前Broker向外发布服务的地址和端口。
+
+  + 与 advertised.listeners 配合，用于做内外网隔离。
+
+    + 参数介绍
+
+    ```shell
+    # 内外网隔离配置:
+    listener.security.protocol.map
+    # 监听器名称和安全协议的映射配置。
+    # 比如，可以将内外网隔离，即使它们都使用SSL。 l
+    istener.security.protocol.map=INTERNAL:SSL,EXTERNAL:SSL 
+    #每个监听器的名称只能在map中出现一次。
+    
+    inter.broker.listener.name 
+    #用于配置broker之间通信使用的监听器名称，该名称必须在advertised.listeners列表中。 
+    inter.broker.listener.name=EXTERNAL
+    
+    listeners
+    # 用于配置broker监听的URI以及监听器名称列表，使用逗号隔开多个URI及监听器名称。
+    # 如果监听器名称代表的不是安全协议，必须配置listener.security.protocol.map。 每个监听器必须使用不同的网络端口。
+    advertised.listeners 
+    # 需要将该地址发布到zookeeper供客户端使用，如果客户端使用的地址与listeners配置不同。 
+    # 可以在zookeeper的 get /myKafka/brokers/ids/<broker.id> 中找到。 
+    # 在IaaS环境，该条目的网络接口得与broker绑定的网络接口不同。 
+    # 如果不设置此条目，就使用listeners的配置。跟listeners不同，该条目不能使用0.0.0.0网络端口。 advertised.listeners的地址必须是listeners中配置的或配置的一部分。
+    ```
+
+    + 配置样例
+
+      ```shell
+      # 协议映射
+      listener.security.protocol.map=INTERNAL:PLAINTEXT,EXTERNAL:PALINTEXT
+      # 所有监听地址和接口
+      listeners=INTERNAL://192.168.8.101:9092,EXTERNAL://192.168.8.101:9001
+      # zookeeper客户端使用，也用于进程通信
+      advertised.listeners=EXTERNAL://192.168.8.101:9001
+      # kafka broker之间通信
+      inter.broker.listener.name=EXTERNAL
+      # 剩下的INTERNAL用于管理通信
+      ```
+
++  **brokerId**
+
+   ```txt
+   该属性用于唯一标记一个Kafka的Broker，它的值是一个任意integer值。
+   当Kafka以分布式集群运行的时候，尤为重要。
+   最好该值跟该Broker所在的物理主机有关的，如主机名为 192.168.100.101 ，则 broker.id=1 ，如果主机名 为 192.168.100.102 ，则 broker.id=2 等等。
+   ```
+
++  **log.dir**
+
+   ```txt
+   通过该属性的值，指定Kafka在磁盘上保存消息的日志片段的目录。 它是一组用逗号分隔的本地文件系统路径。
+   如果指定了多个路径，那么broker 会根据“最少使用”原则，把同一个分区的日志片段保存到同一个路径下。 broker 会往拥有最少数目分区的路径新增分区，而不是往拥有最小磁盘空间的路径新增分区。
+   ```
+
+#### 生产者
+
+##### 消息发送
+
+###### 数据生产流程解析
+
+<img src="../images/gaintData/Kafka/messageProduce01.png">
+
++ Producer创建时，会创建一个Sender线程并设置为守护线程。
+
++ 生产消息时，内部其实是异步流程;生产的消息先经过拦截器->序列化器->分区器，然后将消息缓存在缓冲
+
+  区(该缓冲区也是在Producer创建时创建)。
+
++ 批次发送的条件为:缓冲区数据大小达到batch.size或者linger.ms达到上限，哪个先达到就算哪个。
+
++ 批次发送后，发往指定分区，然后落盘到broker;如果生产者配置了retrires参数大于0并且失败原因允许重试，那么客户端内部会对该消息进行重试。
+
++ 落盘到broker成功，返回生产元数据给生产者。
+
++ 元数据返回有两种方式:一种是通过阻塞直接返回，另一种是通过回调返回。
+
+###### 必要参数配置
+
+| 属性              | 说明                                                         | 重要性 |
+| ----------------- | ------------------------------------------------------------ | ------ |
+| bootstrap.servers | 生产者客户端与broker集群建立初始连接需要的broker地址列表，由该初始连接发现Kafka集群中其他的所有broker。该地址列表不 需要写全部的Kafka集群中broker的地址，但也不要写一个，以防该节点宕机的时候不可用。形式 high 为: host1:port1,host2:port2,... . | 高     |
+| key.serializer    | 实现了接口 org.apache.kafka.common.serialization.Serializer 的key序列化类。 | 高     |
+| value.serializer  | 实现了接口 org.apache.kafka.common.serialization.Serializer 的value序列化类。 | 高     |
+| acks              | 该选项控制着已发送消息的持久性。  acks=0 :生产者不等待broker的任何消息确认。只要将消息放到了socket的缓冲区，就认为消息已发送。不能保证服务器是否收到该消息， retries 设置也不起作用，因为客户端不关心消息是否发送失败。客户端收到的消息偏移量永远是-1。  acks=1 :leader将记录写到它本地日志，就响应客户端确认消息，而不等待follower副本的确认。如果leader确认了消息就宕机，则可能会丢失消息，因为follower副本可能还没来得及同步该消息。  acks=all :leader等待所有同步的副本确认该消息。保证了只要有一个同步副本存在，消息就不会丢失。这是最强的可用性保 | 高     |
+| compression.type  | 生产者生成数据的压缩格式。默认是none(没有压缩)。允许的值: none ， gzip ， snappy 和 lz4 。压缩是对整个消息批次来 high 讲的。消息批的效率也影响压缩的比例。消息批越大，压缩效率越好。字符串类型的值。默认是none。 | 高     |
+| retries           | 设置该属性为一个大于1的值，将在消息发送失败的时候重新发送消息。该重试与客户端收到异常重新发送并无二至。允许重试但是 retries 不设置 max.in.flight.requests.per.connection 为1，存在消息乱序的可能，因为如果两个批次发送到同一个分区，第一 | 高     |
+
+###### 序列化器
+
+<img src="../images/gaintData/Kafka/serializer.png">
+
+```txt
+由于Kafka中的数据都是字节数组，在将消息发送到Kafka之前需要先将数据序列化为字节数组。
+序列化器的作用就是用于序列化要发送的消息的。
+
+Kafka使用 org.apache.kafka.common.serialization.Serializer 接口用于定义序列化器，将泛型指定类型 的数据转换为字节数组。
+
+系统提供了该接口的子接口以及实现类:
+org.apache.kafka.common.serialization.ByteArraySerializer
+org.apache.kafka.common.serialization.ByteBufferSerializer
+org.apache.kafka.common.serialization.BytesSerializer
+org.apache.kafka.common.serialization.DoubleSerializer
+org.apache.kafka.common.serialization.FloatSerializer
+org.apache.kafka.common.serialization.IntegerSerializer
+org.apache.kafka.common.serialization.StringSerializer
+org.apache.kafka.common.serialization.LongSerializer
+org.apache.kafka.common.serialization.ShortSerializer
+```
+
++ 自定义序列化器

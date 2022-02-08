@@ -40,10 +40,16 @@
     export JAVA_HOME=/opt/module/jdk1.8.0_231 
     #指定使用外部的zk集群
     export HBASE_MANAGES_ZK=FALSE
+    
+  # 指定id存放目录，否则会导致删除脚本找不到相关文件无法执行,这边找到对应行取消注释之后创建指定文件夹即可
+    export HBASE_PID_DIR=/var/hadoop/pids
+  
+    mkdir -p /var/hadoop/pids
+    
     ```
-
+  
   + 修改 hbase-site.xml
-
+  
     ```xml
     <configuration>
     <!-- 指定hbase在HDFS上存储的路径 -->
@@ -57,18 +63,18 @@
                     <value>true</value>
             </property>
     <!-- 指定zk的地址，多个用“,”分割 --> 
-      			<property>
+    			<property>
                     <name>hbase.zookeeper.quorum</name>
-                    <value>linux121:2181,linux122:2181,linux123:2181</value>
+                  <value>linux121:2181,linux122:2181,linux123:2181</value>
             </property>
     </configuration>
     ```
-
+  
   + 修改regionservers文件
-
-    ```shell
+  
+  ```shell
     #指定regionserver节点 
-    linux121
+  linux121
     linux122
     linux123
     ```
@@ -78,10 +84,10 @@
     ```txt
     linux122
     ```
-
-  + 配置hbase的环境变量
-
-    ```shell
+  
++ 配置hbase的环境变量
+  
+  ```shell
     export HBASE_HOME=/opt/lagou/servers/hbase-1.3.1
     export PATH=$PATH:$HBASE_HOME/bin
     ```
@@ -96,13 +102,13 @@
 
     ```shell
     source /etc/profile
-    ```
-
+  ```
+  
   + 前提条件:先启动hadoop和zk集群 
-
+  
     + 启动HBase:start-hbase.sh
     + 停止HBase:stop-hbase.sh
-
+  
   + web界面：HMaster的主机名:16010
 
 ##### shell基本操作
@@ -130,13 +136,13 @@ put 'lagou', 'rk1', 'extra_info:address', 'shanghai'
 
 # 查询数据
 # 通过rowkey进行查询
-# 获取表中row key为rk1的所有信息
+# 获取表中rowkey为rk1的所有信息
 get 'lagou', 'rk1'
 # 查看rowkey下面的某个列族的信息
-# 获取lagou表中row key为rk1，base_info列族的所有信息
+# 获取lagou表中rowkey为rk1，base_info列族的所有信息
 get 'lagou', 'rk1', 'base_info'
 # 查看rowkey指定列族指定字段的值
-# 获取表中row key为rk1，base_info列族的name、age列标示符的信息
+# 获取表中rowkey为rk1，base_info列族的name、age列标示符的信息
 get 'lagou', 'rk1', 'base_info:name', 'base_info:age'
 
 # 查看rowkey指定多个列族的信息
@@ -226,6 +232,8 @@ ERROR: Table user is enabled. Disable it first.
 ##### Region合并
 
 #### HbaseAPI应用和优化
+
++ <a href="https://github.com/Ivan-blade/JavaNewDemo/tree/master/helloKafka">点击跳转demo</a>
 
 ##### HBase API客户端操作
 
