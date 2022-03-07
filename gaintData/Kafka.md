@@ -996,7 +996,7 @@
 | bootstrap.servers | 生产者客户端与broker集群建立初始连接需要的broker地址列表，由该初始连接发现Kafka集群中其他的所有broker。该地址列表不 需要写全部的Kafka集群中broker的地址，但也不要写一个，以防该节点宕机的时候不可用。形式 high 为: host1:port1,host2:port2,... . | 高     |
 | key.serializer    | 实现了接口 org.apache.kafka.common.serialization.Serializer 的key序列化类。 | 高     |
 | value.serializer  | 实现了接口 org.apache.kafka.common.serialization.Serializer 的value序列化类。 | 高     |
-| acks              | 该选项控制着已发送消息的持久性。  acks=0 :生产者不等待broker的任何消息确认。只要将消息放到了socket的缓冲区，就认为消息已发送。不能保证服务器是否收到该消息， retries 设置也不起作用，因为客户端不关心消息是否发送失败。客户端收到的消息偏移量永远是-1。  acks=1 :leader将记录写到它本地日志，就响应客户端确认消息，而不等待follower副本的确认。如果leader确认了消息就宕机，则可能会丢失消息，因为follower副本可能还没来得及同步该消息。  acks=all :leader等待所有同步的副本确认该消息。保证了只要有一个同步副本存在，消息就不会丢失。这是最强的可用性保 | 高     |
+| acks              | 该选项控制着已发送消息的持久性。  acks=0 :生产者不等待broker的任何消息确认。只要将消息放到了socket的缓冲区，就认为消息已发送。不能保证服务器是否收到该消息， retries 设置也不起作用，因为客户端不关心消息是否发送失败。客户端收到的消息偏移量永远是-1。  acks=1 :leader将记录写到它本地日志，就响应客户端确认消息，而不等待follower副本的确认。如果leader确认了消息就宕机，则可能会丢失消息，因为follower副本可能还没来得及同步该消息。  acks=-1 :leader等待所有同步的副本确认该消息。保证了只要有一个同步副本存在，消息就不会丢失。这是最强的可用性保 | 高     |
 | compression.type  | 生产者生成数据的压缩格式。默认是none(没有压缩)。允许的值: none ， gzip ， snappy 和 lz4 。压缩是对整个消息批次来 high 讲的。消息批的效率也影响压缩的比例。消息批越大，压缩效率越好。字符串类型的值。默认是none。 | 高     |
 | retries           | 设置该属性为一个大于1的值，将在消息发送失败的时候重新发送消息。该重试与客户端收到异常重新发送并无二至。允许重试但是 retries 不设置 max.in.flight.requests.per.connection 为1，存在消息乱序的可能，因为如果两个批次发送到同一个分区，第一 | 高     |
 
