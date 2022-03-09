@@ -131,3 +131,25 @@ if (cacheValue == null) {
   abbrMappingCache.put(key,"exist");
 }
 ```
+
+#### 将静态参数注入spring容器
+
+```java
+@Component
+public class LoadProperties{
+  
+    public static String NO;
+    private static IOptionService optionService;
+    
+    @Value("${test.no}")
+    private void setNO(String NO){
+      LoadProperties.NO = NO;
+    }  
+  
+    @Autowired
+    public void setOptionService(IOptionService optionService) {
+        Commons.optionService = optionService;
+    }
+}
+```
+
