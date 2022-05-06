@@ -2,6 +2,34 @@
 
 #### 启动时
 
++ 初始依赖
+
+  ```pom
+  <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>2.5.2</version>
+      </parent>
+  
+  <dependencies>
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-web</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-configuration-processor</artifactId>
+              <optional>true</optional>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-test</artifactId>
+          </dependency>
+  </dependencies>
+  ```
+
+  
+
 + 实现接口ApplicationRunner
 
   ```java

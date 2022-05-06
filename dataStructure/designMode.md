@@ -117,7 +117,7 @@
 
   + **注意事项：**作为一种创建类模式，在任何需要生成复杂对象的地方，都可以使用工厂方法模式。有一点需要注意的地方就是复杂对象适合使用工厂模式，而简单对象，特别是只需要通过 new 就可以完成创建的对象，无需使用工厂模式。如果使用工厂模式，就需要引入一个工厂类，会增加系统的复杂度。
 
-  + 实现（详细见helloUtils-design-singlefactory）：
+  + 实现（详细见helloDataStructure-design-singlefactory）：
 
     ```
     * 1.创建接口
@@ -161,7 +161,7 @@
 
 + 实现
 
-  + 具体见（helloUtils-design-abstractFactory）
+  + 具体见（helloDataStructure-design-abstractFactory）
 
     ```
     * 1.根据需求分别创建几个接口shape,color
@@ -215,4 +215,7 @@
     - 创建的一个对象需要消耗的资源过多，比如 I/O 与数据库的连接等。
 
 + 实现
+
+  + 见helloDataStructure-design-singleton
+  + 主要分为饿汉式和懒汉式
 

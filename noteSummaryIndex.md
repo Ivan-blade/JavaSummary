@@ -34,29 +34,31 @@
 
   ```xml
   <build>
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-            <source>1.8</source> <!-- 源代码使用的开发版本 -->
-            <target>1.8</target> <!-- 需要生成的目标class文件的编译版本 -->
-            <!-- 一般而言，target与source是保持一致的，但是，有时候为了让程序能在其他版本的jdk中运行(对于低版本目标jdk，源代码中需要没有使用低版本jdk中不支持的语法)，会存在target不同于source的情况 -->
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <version>3.8.1</version>
+                  <configuration>
+                      <source>1.8</source> <!-- 源代码使用的开发版本 -->
+                      <target>1.8</target> <!-- 需要生成的目标class文件的编译版本 -->
+                      <!-- 一般而言，target与source是保持一致的，但是，有时候为了让程序能在其他版本的jdk中运行(对于低版本目标jdk，源代码中需要没有使用低版本jdk中不支持的语法)，会存在target不同于source的情况 -->
   
-            <!-- 这下面的是可选项 -->
-            <meminitial>128m</meminitial>
-            <maxmem>512m</maxmem>
-            <fork>true</fork> <!-- fork is enable,用于明确表示编译版本配置的可用 -->
-            <compilerVersion>1.3</compilerVersion>
+                      <!-- 这下面的是可选项 -->
+                      <meminitial>128m</meminitial>
+                      <maxmem>512m</maxmem>
+                      <fork>true</fork> <!-- fork is enable,用于明确表示编译版本配置的可用 -->
+                      <compilerVersion>1.3</compilerVersion>
   
-            <!-- 这个选项用来传递编译器自身不包含但是却支持的参数选项 -->
-            <compilerArgument>-verbose -bootclasspath ${java.home}\lib\rt.jar</compilerArgument>
+                      <!-- 这个选项用来传递编译器自身不包含但是却支持的参数选项 -->
+                      <!--                    <compilerArgument>-verbose -bootclasspath ${java.home}\lib\rt.jar</compilerArgument>-->
   
-        </configuration>
-    </plugin>
-   </build>
+                  </configuration>
+              </plugin>
+          </plugins>
+    </build>
   ```
-
+  
   
 
 #### 线程池使用
